@@ -7,14 +7,20 @@
   
   <title>Blog Post 2 | CSCI1951A Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="article">
+  <meta name="description" content="Current StatusWe trained a box office Prediction model that predicts a rough value for the final box office and a Social Media model to correlate the topic discussion amount and the movie box office.">
+<meta property="og:type" content="article">
 <meta property="og:title" content="Blog Post 2">
 <meta property="og:url" content="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/index.html">
 <meta property="og:site_name" content="CSCI1951A Blog">
+<meta property="og:description" content="Current StatusWe trained a box office Prediction model that predicts a rough value for the final box office and a Social Media model to correlate the topic discussion amount and the movie box office.">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-04-19T15:05:23.497Z">
+<meta property="og:image" content="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/basic.png">
+<meta property="og:image" content="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/popularity.png">
+<meta property="og:updated_time" content="2019-04-19T19:16:41.190Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Blog Post 2">
+<meta name="twitter:description" content="Current StatusWe trained a box office Prediction model that predicts a rough value for the final box office and a Social Media model to correlate the topic discussion amount and the movie box office.">
+<meta name="twitter:image" content="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/basic.png">
   
     <link rel="alternate" href="/csci1951a.github.io/atom.xml" title="CSCI1951A Blog" type="application/atom+xml">
   
@@ -87,11 +93,30 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <h1 id="Current-Status"><a href="#Current-Status" class="headerlink" title="Current Status"></a>Current Status</h1><p>We trained a box office Prediction model that predicts a rough value for the final box office and a Social Media model to correlate the topic discussion amount and the movie box office.</p>
+<h2 id="Box-Office-Prediction-Model"><a href="#Box-Office-Prediction-Model" class="headerlink" title="Box Office Prediction Model"></a>Box Office Prediction Model</h2><p>To simplify the problem, the model is trained with movies only related to Marvel superhero and 5 features are considered for the training. Features selected are Features about director, actors, actresses: Number of followers on Twitter (select top three), feature about showing time influence: Time past from the first movie, a feature about popularity: The times of watching movie trailers on Youtube.</p>
+<p>feature example<br>[top1_number_of_followers, top2_number_of_followers, top3_number_of_followers, years_past, times_watch_movie_trailers]</p>
+<p>Since the amount of data is very limited, we decided to choose linear regression model to make the prediction. We used linear_model in sklearn package. </p>
+<p>The coefficients for each feature are:<br>Coefficients:<br> [16.29878943 -9.82518317 19.13476566 14.24214735  1.05286416]<br>Prediction:<br> [614.15516941]</p>
+<p>Base on this model, the prediction result for the movie is 614.2 million, which is much lesser than our expectation. One of the possible reason might be the trailer’s view count can’t yet reflect the popularity of Avengers: Endgame, since it was just released on March 13th, and there are still two weeks to the premiere. As the view count increases, we can expect to get a greater value.</p>
+<p>For the data visualization, we select two most influential features as x,y axis: top1 number of followers of the crew on Twitter and trailers view count. Z dimension is the box office of the movie. As shown in the plot, it is obvious that the movie with higher followers and watching times tends to have a higher box office. </p>
+<p><img src="/csci1951a.github.io/2019/04/18/BlogPost2/basic.png" alt></p>
+<p>Next step, we plan to train with all the movies in the same genres as Avenger4, which are movies with genres “Science Fiction”, “Action” or Adventure”.<br>More features are also considered for training: cast total facebook likes, IMDB movie score.</p>
+<h2 id="Social-Media-Model"><a href="#Social-Media-Model" class="headerlink" title="Social Media Model"></a>Social Media Model</h2><p>In Midterm report, we planned to use the Twitter standard API to estimate the number of tweets related to the target movie each day. For a specific movie, we planned to treat the number of related tweets on i days before the release date as features Xi. If we are interested in all tweets 30 days prior to the release date. We can get 30 features: X30, X29, … , X1. </p>
+<p>Take the movie Avengers: Endgame as an example, of which the release date is 04/26/2019. We first use standard search API to get the related tweets in the past 9 days (03/27 ~ 04/04). These are features X32, X31, …, X24. Finally, we can plot the following figure. </p>
+<p><img src="/csci1951a.github.io/2019/04/18/BlogPost2/popularity.png" alt></p>
+<p>The reason why the number of tweets related to Avengers: Endgame is very large on April 2 is that the pre-sales began on that day.</p>
+<p>We have completed this function. However, due to the restriction of Twitter API, we cannot access very old data. Even we have upgraded to a Premium account, we can only request for 100 times each month, which is far from enough in our project. So we may have to give up using Twitter to estimate the popularity of a movie later. So we may use data from  other sources to estimate the popularity of a movie. Currently, we want to use  the New York Times API to search the article related to a movie. Since the number of articles is much smaller than that of tweets, we may not directly use the number of articles as a feature. We need to analyze  the content of articles.</p>
+<h2 id="Next-Steps"><a href="#Next-Steps" class="headerlink" title="Next Steps"></a>Next Steps</h2><h3 id="Goals"><a href="#Goals" class="headerlink" title="Goals"></a>Goals</h3><p>Data - processing: enlarge our training data with more movies in the same genres. Search for features for these new movies.<br>Train model for predicting base value (first-day box office): linear regression model</p>
+<h3 id="Features"><a href="#Features" class="headerlink" title="Features"></a>Features</h3><p>We found ways to automate the process of data collection, additional dataset so we are going to extend the number of possible features for experiment.<br>The current feature list for the box-office prediction model is as follows:<br>[movie_title, box_office, release_date, genres, Series, actors, actors_popularity, director, director_popularity, production_company, company_total_gross, trailer_viewcount, pre_sale]</p>
+<p>Previously, we didn’t find a good way to get this data through web scraping or existing API as an indicator for actor popularity. Since there exist many fan accounts, fake accounts that use the same name, which we want to avoid, so simple web scraping would not work, and we manually collected number of followers of the actors. This time, we found existing data of facebook likes for top actors and combined multiple datasets. In addition, we use Youtube API to query the view count for each movie’s trailer.</p>
+<h3 id="Switch-from-Twitter-to-NYT-Article"><a href="#Switch-from-Twitter-to-NYT-Article" class="headerlink" title="Switch from Twitter to NYT Article"></a>Switch from Twitter to NYT Article</h3><p>The original data source for this project was twitter. However, due to limitation of twitter API, data collection was found to be rather hard. Therefore, the New York Times articles were used as a replacement. Due the nature of articles, the analysis methodology needs to be adjusted. The new proposed method was to perform natural language processing technique on each article, semantic analysis, and rate each movie based on the result. This article-based rating can be used as one feature of the prediction model. </p>
+<h2 id="Timeline"><a href="#Timeline" class="headerlink" title="Timeline"></a>Timeline</h2><p>Apr/20 - Apr/25: Data preparation for linear regression training; Social media model training<br>Apr/26 - Apr/30: Data update and optimization<br>May/1 - May/2: Poster preparation<br>May/3 - May/10: Model generalization and conclusion; Blog3</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/" data-id="cjuo7j2ei0001xslj46m96x6w" class="article-share-link">Share</a>
+      <a data-url="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/" data-id="cjuogh0vo0001vronuu4rsp2d" class="article-share-link">Share</a>
       
       
     </footer>
