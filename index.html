@@ -66,6 +66,71 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-BlogPost3" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/csci1951a.github.io/2019/05/04/BlogPost3/" class="article-date">
+  <time datetime="2019-05-04T06:26:35.000Z" itemprop="datePublished">2019-05-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/csci1951a.github.io/2019/05/04/BlogPost3/">Final Blog</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Vision"><a href="#Vision" class="headerlink" title="Vision"></a>Vision</h2><p>Is it possible to predict the box office of a movie? With “big data” resources and “machine learning” methods, we achieved the target of generating some reasonable forecasts. Two months ago, we brainstormed about how to make a reasonable prediction for a super popular movie that might break the historical record –Avengers: EndGame, and if so, we could apply such method to other movies as well. </p>
+<p>Since then, we explored how multiple data sources can fit into different models. We used data in three different aspects: historical movies that are similar to the target movie, discussion from social media (Twitter) as popularity, and news articles from public media (New York Times) as opinions from professionals. As a result, we finally come up with a way to generalize this forecasting process and make it into a useful prediction tool for all movies.</p>
+<h2 id="Achievements"><a href="#Achievements" class="headerlink" title="Achievements"></a>Achievements</h2><p>We achieved the goals we set in the beginning:</p>
+<ul>
+<li>Predict the whole box office of movie Avengers 4: EndGame.</li>
+<li>Generalize the movie box office forecast model.</li>
+</ul>
+<h2 id="Data"><a href="#Data" class="headerlink" title="Data"></a>Data</h2><p>We collected data from four datasets and finally applied three in the prediction models. Data from <strong>IMDB</strong> to get the some basic features about the movie, such as movie genre and budget. In addition, IMDB reviews were also used for training the NLP model to analyze New York Time articles, alone with binarized rating score. Data from <strong>Twitter</strong> to indicate the movie popularity. Data from <strong>New York Times</strong> to show the attitudes of the professional reviews. Trailer view counts from Youtube were also collected with Youtube API. However, due to large numbers of movies and the restriction of Youtube API, the feature of trailer view is not available for all the movies and finally we did not apply this feature in our final prediction model. On the other hand, the number of tweets could also reflect the popularity as Youtube trailer view counts do (even better), which means removing this Youtube trailer view counts feature would not lose much information to our prediction models.</p>
+<h3 id="Datasets-Introduction"><a href="#Datasets-Introduction" class="headerlink" title="Datasets Introduction"></a>Datasets Introduction</h3><h4 id="IMDB"><a href="#IMDB" class="headerlink" title="IMDB"></a>IMDB</h4><p>Movie features of 45000 movie records: genres, production companies, release date, IMDB popularity index, IMDB vote average, runtime, budget, revenue.<br>For the training set of the NLP model, 50,000 IMDB reviews for a variety of movies were used. Each review contains 2 parts: The actual review, and the review score. Actual reviews were tokenized into vectors, and review scores were binarized into either 0 or 1. The ratio of positive reviews and negative reviews were roughly 1:1.</p>
+<h4 id="Social-media-number-of-Tweets-with-hashtags-of-the-movie-title"><a href="#Social-media-number-of-Tweets-with-hashtags-of-the-movie-title" class="headerlink" title="Social media: number of Tweets with hashtags of the movie title."></a>Social media: number of Tweets with hashtags of the movie title.</h4><p>We use data from Twitter to present the social influence of the movie. For simplicity, we first only take the number of tweets into our consideration. We used the Twitter premium API to estimate the number of tweets related to the target movie each day. </p>
+<p>Since the API is very expensive and has very strict rate limits (100 request per month). We need to store the request results and reuse them. For a specific movie, we collected and stored all tweets related to a movie in a window of length 50 days. Here is the figure.<br><img src="/csci1951a.github.io/2019/05/04/BlogPost3/twitter3.png" alt></p>
+<p>In our final implementation, we only used data in a month ( from 25 days prior to the release date to 5 days after the release date).</p>
+<h4 id="Public-media-articles"><a href="#Public-media-articles" class="headerlink" title="Public media articles"></a>Public media articles</h4><p>Although the data collected by using New York Times API includes the actual article content, only headlines of the articles were used for NLP analysis to reflect the professional opinions for the movie. The reason being that although the content of the article contains far more information than headline alone, most of the headlines were already representative for the content, and it would be pointless to include the redundant sentences. By doing so, the performance of the software can also be improved.</p>
+<h2 id="Model-Structure-and-Implementation-Detail"><a href="#Model-Structure-and-Implementation-Detail" class="headerlink" title="Model Structure and Implementation Detail"></a>Model Structure and Implementation Detail</h2><p><img src="/csci1951a.github.io/2019/05/04/BlogPost3/model.png" alt><br>Our predictor is made of two parts: base and variance: </p>
+<pre><code>box office = base + variance 
+</code></pre><p>The base value used a single linear regression model with features from the IMDB dataset. The base part is more about static features and it is not reflexible with real time. Actually, using average box office is good enough in this part.</p>
+<p>For the variance part, we first use an additional pair of linear regression models, with number of tweets and ratings of articles as separate features. The result from the two variance models are then treated as a new pair of features for the third variance linear regression model.</p>
+<h3 id="Data-processing"><a href="#Data-processing" class="headerlink" title="Data processing"></a>Data processing</h3><p>####IMDB data<br>We use the IMDB dataset from Kaggle and cleaned it into features that are most relevant and most likely to affect to the final revenue. To narrow down the dataset, only movies that are similar to the target movie are considered for the training. Similarity is defined as movies with the same production companies, similar genres, and release time. </p>
+<p>####Twitter<br>We map the number of tweets at each time interval (7 days as default) into a single feature. Therefore, the number of related tweets on i days before the release date as the i/7 th feature. Take the movie Avengers: Endgame as an example, of which the release date is 04/26/2019. We use premium search API to get the related tweets in a 30 day window (04/01 ~ 05/01), which can be mapped into features X3, X2, X1 and X0.</p>
+<p>Twitter was developing really fast in the past 5 years. More and more people begin talking movies on Twitter. For those older movies, there is a huge gap between the number of tweets at that time and nowadays. To weaken the influence of this problem, square root value of tweets numbers is applied.</p>
+<p>####NYT articles<br>New York Times article was used for providing a professional view of the movie. A LSTM (Long short-term memory) natural language processing model was trained by using movie reviews on IMDB. The training set contains a string of sentences for the review content, and number of 0 representing a negative review, or 1 representing a positive review. The model produces a float number of rating from 0 to 1, representing how positive the review is. The New York Times articles were fed into the NLP model for evaluating the attitude.</p>
+<p>For each movie, all the articles in a window of time that relate to this movie were fed into the model, and generate an average score. Similar movies that share same key words were fed in to the model as well. The average article rating was found to be 0.91 for Avengers: End Game, and 0.96 for Avengers: Infinity War.<br>The amount of articles for each movie depends on the window period, and how many articles exist in this window period. The default window was set to 30 days before the movie release, and all articles on New Your Times during this period were used. The final output for this model was the average score of the movie, and amount of total articles. For movies that does not have any article, score were set to 0, and amount was set to 0.</p>
+<h2 id="Visualization"><a href="#Visualization" class="headerlink" title="Visualization"></a>Visualization</h2><p>For <strong>Avengers: Endgame</strong>, if we set the number of similar movies to <strong>20</strong>, the prediction model gives a base value at 663.9 million. In our final code, the number of similar movies is set to 10 or 15, we wanted to <strong>minimize the usage of the expensive Twitter API</strong>, and the base value became 888.9 million), which is similar to the previous movie <strong>Avengers: Infinity War</strong>. Which is reasonable considering the features we chose. </p>
+<p>To visualize the data, we picked two features. The figure below shows the positive correlation between two of the features and the box office.<br><img src="/csci1951a.github.io/2019/05/04/BlogPost3/basic.png" alt></p>
+<p>In fact, we can tell that this movie is actually much more popular than Infinity War from social media and news. The social media is able to capture this part of information in the figure below:<br><img src="/csci1951a.github.io/2019/05/04/BlogPost3/twitter.png" alt></p>
+<p>The first peak occurred at April 2nd, which is the pre-sale date, and since the release date–April 22nd, the discussion amount kept growing to the climax. To combine this piece of information to our prediction, we got a variance value at 1.95 billion – a total of 2.8 billion for the global revenue.</p>
+<h3 id="Feelings"><a href="#Feelings" class="headerlink" title="Feelings"></a>Feelings</h3><p>We are so excited that our project was voted as the best overall project in the final presentation. We did not make a very attractive poster for our project, but we did spend a lot of time on coding. one TA told us that our model was more complicated than those of most group. Data collecting, cleaning, and analysis in this project is really challenging. Our project is very useful to help customers to determine whether to watch a movie. Or it can be used by cinemas to decide how to allocate resources for different movies.</p>
+<p>We used many techniques mentioned in this course, such as data cleaning (hw1), web scraping (hw2), NLP (hw7), machine learning (hw5), MapReduce (hw3), data visualization (hw6). We have learned how to be a novice data scientist. </p>
+<p>  <img src="/csci1951a.github.io/2019/05/04/BlogPost3/poster.jpg" alt></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://liamju.github.io/csci1951a.github.io/2019/05/04/BlogPost3/" data-id="cjv96eg5b000236ljfhfcuxi6" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-BlogPost2" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/csci1951a.github.io/2019/04/18/BlogPost2/" class="article-date">
@@ -111,7 +176,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/" data-id="cjuogh0vo0001vronuu4rsp2d" class="article-share-link">Share</a>
+      <a data-url="https://liamju.github.io/csci1951a.github.io/2019/04/18/BlogPost2/" data-id="cjv96eg50000136ljkqvv8ptg" class="article-share-link">Share</a>
       
       
     </footer>
@@ -168,7 +233,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://liamju.github.io/csci1951a.github.io/2019/03/15/BlogPost1/" data-id="cjuogh0va0000vrontys35n1f" class="article-share-link">Share</a>
+      <a data-url="https://liamju.github.io/csci1951a.github.io/2019/03/15/BlogPost1/" data-id="cjv96eg4w000036ljyqvqrhdz" class="article-share-link">Share</a>
       
       
     </footer>
@@ -196,7 +261,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/csci1951a.github.io/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/csci1951a.github.io/archives/2019/03/">March 2019</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/csci1951a.github.io/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/csci1951a.github.io/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/csci1951a.github.io/archives/2019/03/">March 2019</a></li></ul>
     </div>
   </div>
 
@@ -207,6 +272,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/csci1951a.github.io/2019/05/04/BlogPost3/">Final Blog</a>
+          </li>
         
           <li>
             <a href="/csci1951a.github.io/2019/04/18/BlogPost2/">Blog Post 2</a>
